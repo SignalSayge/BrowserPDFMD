@@ -68,13 +68,20 @@ npm test
 
 ### Build & Deployment
 
+For Cloudflare Pages Git deployments, use these build settings:
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Deploy command: leave blank if Pages is auto-publishing the build output, or use `npm run deploy` if your Cloudflare build settings require an explicit deploy command.
+
+Do not use `npx wrangler deploy` for this project. That command deploys a Worker and will fail with "Missing entry-point to Worker script or to assets directory" because this repository is a static Cloudflare Pages app.
+
 Build the production static assets:
 ```bash
 npm run build
 ```
 The optimized bundle will be placed in the `dist/` directory, ready to be deployed to Cloudflare Pages:
 ```bash
-npx wrangler pages deploy dist
+npm run deploy
 ```
 
 The build removes the unchunked server detector from `dist/` and serves the

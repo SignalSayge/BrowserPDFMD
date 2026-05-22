@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy": "npx wrangler pages deploy dist",
     "test": "node tests/run.js",
     "preview": "vite preview"
   },
