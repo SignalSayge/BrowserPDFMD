@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.model-work/
+*.log
+public/models/paddleocr/pp-ocrv5-server-det.onnx

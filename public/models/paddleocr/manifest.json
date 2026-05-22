@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 1,
+  "runtime": "onnxruntime-web",
+  "defaultDetector": "fast",
+  "layoutStrategy": "detector_boxes_reading_order",
+  "orientationClassifier": null,
+  "semanticLayoutModel": null,
+  "conversion": {
+    "tool": "paddlex --paddle2onnx",
+    "paddle2onnxVersion": "2.1.0",
+    "paddlepaddleVersion": "3.0.0.dev20250426",
+    "opsetVersion": 17,
+    "constantFolding": "not_applied; optional onnxruntime/onnx_graphsurgeon folding dependencies were unavailable during export"
+  },
+  "detectors": {
+    "fast": {
+      "model": "PP-OCRv5_mobile_det",
+      "filename": "pp-ocrv5-mobile-det.onnx",
+      "purpose": "text_detection",
+      "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+      "sourceArchive": "PP-OCRv5_mobile_det_infer.tar",
+      "sourceArchiveSha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58",
+      "license": "Apache-2.0 (PaddleOCR/PaddlePaddle model release)",
+      "sha256": "c8d9b07063420ce5365c74e42532de48238feeeedcdb7a330b195708bc38a93f",
+      "sizeBytes": 4766440,
+      "onnx": {
+        "irVersion": 8,
+        "opsets": [
+          {
+            "domain": "ai.onnx",
+            "version": 17
+          }
+        ],
+        "inputs": [
+          {
+            "name": "x",
+            "shape": [
+              "DynamicDimension.0",
+              3,
+              "DynamicDimension.1",
+              "DynamicDimension.2"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "shape": [
+              "DynamicDimension.3",
+              1,
+              "DynamicDimension.4",
+              "DynamicDimension.5"
+            ]
+          }
+        ],
+        "nodeCount": 925
+      },
+      "input": {
+        "name": "x",
+        "shape": [
+          "DynamicDimension.0",
+          3,
+          "DynamicDimension.1",
+          "DynamicDimension.2"
+        ],
+        "color": "BGR",
+        "normalization": {
+          "scale": "1./255.",
+          "mean": [
+            0.485,
+            0.456,
+            0.406
+          ],
+          "std": [
+            0.229,
+            0.224,
+            0.225
+          ],
+          "layout": "NCHW"
+        },
+        "resize": {
+          "type": "DetResizeForTest",
+          "resizeLong": 960
+        }
+      },
+      "outputs": [
+        {
+          "name": "fetch_name_0",
+          "meaning": "probability_map",
+          "shape": [
+            "DynamicDimension.3",
+            1,
+            "DynamicDimension.4",
+            "DynamicDimension.5"
+          ]
+        }
+      ],
+      "postprocess": {
+        "algorithm": "DBPostProcess",
+        "threshold": 0.3,
+        "boxThreshold": 0.6,
+        "maxCandidates": 1000,
+        "unclipRatio": 1.5
+      }
+    },
+    "accurate": {
+      "model": "PP-OCRv5_server_det",
+      "filename": "pp-ocrv5-server-det.onnx",
+      "purpose": "text_detection",
+      "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_server_det_infer.tar",
+      "sourceArchive": "PP-OCRv5_server_det_infer.tar",
+      "sourceArchiveSha256": "22a33e0ba6a21425ea4192da03bf4395c9a0c67902bd924b7328fc859073045d",
+      "license": "Apache-2.0 (PaddleOCR/PaddlePaddle model release)",
+      "sha256": "d5f46afc7a2b7fe5773c4ce6ff05c9e23631eb5de0f59d7a90404d9c49678f3c",
+      "sizeBytes": 88047983,
+      "chunks": [
+        {
+          "filename": "pp-ocrv5-server-det.onnx.part01",
+          "sizeBytes": 20971520,
+          "sha256": "6c9644672b249637f02ede10f1fd025869277d827e4150b2707cef0a234b31f4"
+        },
+        {
+          "filename": "pp-ocrv5-server-det.onnx.part02",
+          "sizeBytes": 20971520,
+          "sha256": "f6b032d107b1a8e967dbfa5c73f6e528e3ffd6b8e0d625856bebf2b49e0bb203"
+        },
+        {
+          "filename": "pp-ocrv5-server-det.onnx.part03",
+          "sizeBytes": 20971520,
+          "sha256": "992074d5228e0cd2aae58a318c1865f10e524c3a966820982bb56468aeb4a7bf"
+        },
+        {
+          "filename": "pp-ocrv5-server-det.onnx.part04",
+          "sizeBytes": 20971520,
+          "sha256": "932bbac4dd8b828dcc07c20c246c6ed2f46f39d592fe2d4bf4d8f4e783be051e"
+        },
+        {
+          "filename": "pp-ocrv5-server-det.onnx.part05",
+          "sizeBytes": 4161903,
+          "sha256": "cbefc51d9dd632d08e7203b024405b99fd0e4ede955ce7e083fa4fc1229ffcbf"
+        }
+      ],
+      "onnx": {
+        "irVersion": 8,
+        "opsets": [
+          {
+            "domain": "ai.onnx",
+            "version": 17
+          }
+        ],
+        "inputs": [
+          {
+            "name": "x",
+            "shape": [
+              "DynamicDimension.0",
+              3,
+              "DynamicDimension.1",
+              "DynamicDimension.2"
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fetch_name_0",
+            "shape": [
+              "DynamicDimension.3",
+              1,
+              "DynamicDimension.4",
+              "DynamicDimension.5"
+            ]
+          }
+        ],
+        "nodeCount": 1306
+      },
+      "input": {
+        "name": "x",
+        "shape": [
+          "DynamicDimension.0",
+          3,
+          "DynamicDimension.1",
+          "DynamicDimension.2"
+        ],
+        "color": "BGR",
+        "normalization": {
+          "scale": "1./255.",
+          "mean": [
+            0.485,
+            0.456,
+            0.406
+          ],
+          "std": [
+            0.229,
+            0.224,
+            0.225
+          ],
+          "layout": "NCHW"
+        },
+        "resize": {
+          "type": "DetResizeForTest",
+          "resizeLong": 960
+        }
+      },
+      "outputs": [
+        {
+          "name": "fetch_name_0",
+          "meaning": "probability_map",
+          "shape": [
+            "DynamicDimension.3",
+            1,
+            "DynamicDimension.4",
+            "DynamicDimension.5"
+          ]
+        }
+      ],
+      "postprocess": {
+        "algorithm": "DBPostProcess",
+        "threshold": 0.3,
+        "boxThreshold": 0.6,
+        "maxCandidates": 1000,
+        "unclipRatio": 1.5
+      }
+    }
+  },
+  "recognizer": {
+    "model": "en_PP-OCRv5_mobile_rec",
+    "filename": "en-pp-ocrv5-mobile-rec.onnx",
+    "dictionary": "rec-dict.txt",
+    "purpose": "english_text_recognition",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/en_PP-OCRv5_mobile_rec_infer.tar",
+    "sourceArchive": "en_PP-OCRv5_mobile_rec_infer.tar",
+    "sourceArchiveSha256": "e595b4cf2ffad19fbb5a61ba345d63939577a3ab8717b6e5995642590c9101b4",
+    "license": "Apache-2.0 (PaddleOCR/PaddlePaddle model release)",
+    "sha256": "70b2450eed39599af6b996c27a2f1a0ef30eeb49f9f66dd3e74f28f652befc89",
+    "dictionarySha256": "8459e5659185f87d62195cb495f2677493bade134182bfb8c54bf21757b28cdf",
+    "sizeBytes": 7843511,
+    "dictionaryCharacterCount": 436,
+    "onnx": {
+      "irVersion": 8,
+      "opsets": [
+        {
+          "domain": "ai.onnx",
+          "version": 17
+        }
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "shape": [
+            "DynamicDimension.0",
+            3,
+            48,
+            "DynamicDimension.1"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "fetch_name_0",
+          "shape": [
+            "DynamicDimension.2",
+            "DynamicDimension.3",
+            438
+          ]
+        }
+      ],
+      "nodeCount": 922
+    },
+    "input": {
+      "name": "x",
+      "shape": [
+        "DynamicDimension.0",
+        3,
+        48,
+        "DynamicDimension.1"
+      ],
+      "color": "BGR",
+      "normalization": {
+        "scale": "1./255.",
+        "mean": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "std": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "layout": "NCHW",
+        "paddingValue": 0
+      },
+      "resize": {
+        "type": "RecResizeImg",
+        "imageShape": [
+          3,
+          48,
+          320
+        ]
+      }
+    },
+    "outputs": [
+      {
+        "name": "fetch_name_0",
+        "meaning": "ctc_logits",
+        "shape": [
+          "DynamicDimension.2",
+          "DynamicDimension.3",
+          438
+        ]
+      }
+    ],
+    "decoder": {
+      "type": "CTCLabelDecode",
+      "blankIndex": 0,
+      "characterOffset": 1,
+      "spaceIndex": 437,
+      "outputClassCount": 438,
+      "preserveSpaces": true
+    }
+  }
+}

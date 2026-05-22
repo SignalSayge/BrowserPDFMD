@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Convert PDF documents to Markdown locally in the browser."
+    />
+    <title>PDF to Markdown</title>
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar" aria-label="Application status">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">MD</span>
+          <div>
+            <h1>PDF to Markdown</h1>
+            <p>Local conversion workspace</p>
+          </div>
+        </div>
+        <div class="status-actions">
+          <div class="info-popover">
+            <button
+              class="info-button"
+              type="button"
+              aria-label="How conversion works"
+              aria-describedby="appInfoTooltip"
+            >
+              i
+            </button>
+            <div id="appInfoTooltip" class="info-tooltip" role="tooltip">
+              Runs entirely in this browser. Text PDFs use PDF.js in a worker;
+              scanned PDFs lazy-load local PaddleOCR ONNX assets. No PDF or
+              extracted text is uploaded.
+            </div>
+          </div>
+          <div id="deviceBadge" class="device-badge is-detecting">
+            <span class="device-dot" aria-hidden="true"></span>
+            <span id="deviceLabel">Detecting compute</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="input-panel" aria-labelledby="inputTitle">
+          <div class="panel-heading">
+            <p class="eyebrow">Source</p>
+            <h2 id="inputTitle">Upload PDF</h2>
+          </div>
+
+          <div id="dropzone" class="dropzone" tabindex="0">
+            <input id="fileInput" type="file" accept="application/pdf,.pdf" />
+            <div class="paper-stack" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="dropzone-copy">
+              <strong>Drop a PDF</strong>
+              <span>or choose a file from this device</span>
+            </div>
+            <button id="chooseFileButton" class="primary-button" type="button">
+              Choose PDF
+            </button>
+          </div>
+
+          <div id="fileMeta" class="file-meta" hidden></div>
+
+          <fieldset class="ocr-settings" aria-labelledby="ocrDetectorLabel">
+            <legend>
+              <span class="eyebrow">OCR Detector</span>
+              <strong id="ocrDetectorLabel">Scanned PDFs</strong>
+            </legend>
+            <div class="segmented-control">
+              <label>
+                <input
+                  type="radio"
+                  name="ocrDetector"
+                  value="fast"
+                  checked
+                />
+                <span>Fast</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="ocrDetector"
+                  value="accurate"
+                />
+                <span>Accurate</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div id="progressPanel" class="progress-panel" hidden>
+            <div class="progress-copy">
+              <span id="progressStage">Waiting</span>
+              <span id="progressCount"></span>
+            </div>
+            <div
+              class="progress-track"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span id="progressBar"></span>
+            </div>
+            <div class="progress-footer">
+              <p id="progressMessage" class="progress-message"></p>
+              <button
+                id="cancelButton"
+                class="secondary-button progress-cancel"
+                type="button"
+                hidden
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <div id="errorPanel" class="error-panel" role="alert" hidden>
+            <strong id="errorTitle">Conversion failed</strong>
+            <p id="errorMessage"></p>
+            <button id="retryButton" class="secondary-button" type="button">
+              Retry
+            </button>
+          </div>
+
+          <ul id="warningList" class="warning-list" hidden></ul>
+        </section>
+
+        <section class="output-panel" aria-labelledby="outputTitle">
+          <div class="output-toolbar">
+            <div>
+              <p class="eyebrow">Markdown</p>
+              <h2 id="outputTitle">Output</h2>
+            </div>
+            <div class="toolbar-actions">
+              <button id="copyButton" class="icon-button" type="button" disabled>
+                Copy
+              </button>
+              <button
+                id="downloadButton"
+                class="icon-button"
+                type="button"
+                disabled
+              >
+                Download
+              </button>
+            </div>
+          </div>
+
+          <textarea
+            id="outputArea"
+            spellcheck="false"
+            placeholder="Markdown will appear here."
+            aria-label="Markdown output"
+          ></textarea>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
