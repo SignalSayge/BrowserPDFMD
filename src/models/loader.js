@@ -39,12 +39,12 @@ export async function loadOcrModels(device, {
   const ort = await import('onnxruntime-web/webgpu');
   configureOrt(ort);
 
-  const executionProviders = Array.isArray(device?.executionProviders)
-    ? device.executionProviders
-    : ['wasm'];
+  const plan = buildExecutionPlan(device);
 
   let detector;
   let recognizer;
+  let detectorDeviceType;
+  let recognizerDeviceType;
   let dictionaryText;
   try {
     const detectorManifest = manifest.detectors[selectedDetector.key];
@@ -90,35 +90,47 @@ export async function loadOcrModels(device, {
       message: `Initializing ${selectedDetector.label} OCR detector.`,
       percent: 25
     });
-    detector = await createSession(
+    ({ session: detector, deviceType: detectorDeviceType } = await createSession(
       ort,
       detectorBytes,
-      executionProviders,
+      plan,
       `${selectedDetector.label} detector`
-    );
+    ));
 
     onProgress?.({
       stage: 'Loading model',
       message: 'Initializing English OCR recognizer.',
       percent: 25
     });
-    recognizer = await createSession(
+    ({ session: recognizer, deviceType: recognizerDeviceType } = await createSession(
       ort,
       recognizerBytes,
-      executionProviders,
+      plan,
       'English recognizer'
-    );
+    ));
   } catch (error) {
     await detector?.release?.();
     await recognizer?.release?.();
     throw error;
   }
 
+  // Report the execution provider the sessions actually initialized on, so the
+  // UI badge reflects reality instead of the optimistic main-thread detection.
+  const effectiveDevice =
+    DEVICE_DESCRIPTORS[weakerDevice(detectorDeviceType, recognizerDeviceType)];
+  onProgress?.({
+    stage: 'Loading model',
+    message: `OCR running on ${effectiveDevice.label}.`,
+    percent: 25,
+    device: effectiveDevice
+  });
+
   return {
     ort,
     detector,
     detectorProfile: selectedDetector,
     recognizer,
+    device: effectiveDevice,
     dictionary: dictionaryText.split(/\r?\n/).filter(Boolean),
     manifest
   };
@@ -350,35 +362,69 @@ function getDetectorProfile(detectorProfile) {
   };
 }
 
-async function createSession(ort, url, executionProviders, label = 'OCR model') {
-  const requested = executionProviders.map(providerName);
-  try {
-    const session = await ort.InferenceSession.create(url, {
-      executionProviders
-    });
-    console.info(`[OCR] ${label}: session created requesting [${requested.join(', ')}].`);
-    return session;
-  } catch (error) {
-    if (
-      executionProviders.length > 1 &&
-      executionProviders.some((provider) => providerName(provider) !== 'wasm')
-    ) {
-      console.warn(
-        `[OCR] ${label}: execution providers [${requested.join(', ')}] failed to ` +
-          'initialize; falling back to WASM (CPU). Reason:',
-        error
-      );
-      return ort.InferenceSession.create(url, {
-        executionProviders: ['wasm']
-      });
-    }
+// Accelerator tiers list the accelerator alone (no 'wasm') so that a genuine
+// initialization failure throws and advances to the next tier — giving an
+// NPU -> WebGPU -> CPU failover and a session whose success honestly reflects
+// the provider in use. Only the final CPU tier uses 'wasm'.
+const WEBGPU_TIER = { type: 'webgpu', providers: ['webgpu'] };
+const CPU_TIER = { type: 'cpu', providers: ['wasm'] };
 
-    throw error;
+const DEVICE_DESCRIPTORS = {
+  'webnn-npu': { type: 'webnn-npu', label: 'NPU', detail: 'WebNN NPU runtime' },
+  webnn: { type: 'webnn', label: 'GPU (WebNN)', detail: 'WebNN GPU runtime' },
+  webgpu: { type: 'webgpu', label: 'GPU', detail: 'WebGPU runtime' },
+  cpu: { type: 'cpu', label: 'CPU', detail: 'WASM OCR runtime' }
+};
+
+const DEVICE_RANK = { cpu: 0, webgpu: 1, webnn: 2, 'webnn-npu': 3 };
+
+function buildExecutionPlan(device) {
+  switch (device?.type) {
+    case 'webnn-npu':
+      return [
+        { type: 'webnn-npu', providers: [{ name: 'webnn', deviceType: 'npu' }] },
+        WEBGPU_TIER,
+        CPU_TIER
+      ];
+    case 'webnn':
+      return [
+        { type: 'webnn', providers: [{ name: 'webnn', deviceType: 'gpu' }] },
+        WEBGPU_TIER,
+        CPU_TIER
+      ];
+    case 'webgpu':
+      return [WEBGPU_TIER, CPU_TIER];
+    default:
+      return [CPU_TIER];
   }
 }
 
-function providerName(provider) {
-  return typeof provider === 'string' ? provider : provider?.name ?? 'unknown';
+function weakerDevice(a, b) {
+  return DEVICE_RANK[a] <= DEVICE_RANK[b] ? a : b;
+}
+
+async function createSession(ort, url, plan, label) {
+  for (let index = 0; index < plan.length; index += 1) {
+    const tier = plan[index];
+    try {
+      const session = await ort.InferenceSession.create(url, {
+        executionProviders: tier.providers
+      });
+      console.info(`[OCR] ${label}: running on ${tier.type}.`);
+      return { session, deviceType: tier.type };
+    } catch (error) {
+      const next = plan[index + 1];
+      if (!next) {
+        throw error;
+      }
+      console.warn(
+        `[OCR] ${label}: ${tier.type} could not initialize; trying ${next.type}. Reason:`,
+        error
+      );
+    }
+  }
+
+  throw new Error('No execution provider could be initialized.');
 }
 
 function configureOrt(ort) {

@@ -193,6 +193,10 @@ function createPdfWorker() {
     }
 
     if (data.type === 'progress') {
+      if (data.device) {
+        appState.device = data.device;
+        setDeviceBadge(elements, data.device);
+      }
       renderProgress(elements, data);
       if (data.warnings) {
         renderWarnings(elements, data.warnings);
