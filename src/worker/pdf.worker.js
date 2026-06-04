@@ -8,6 +8,67 @@ import { extractTextLines } from '../pipeline/text.js';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
+// pdf.js renders pages with DOMCanvasFactory/DOMFilterFactory by default, which
+// call document.createElement — unavailable in this Web Worker. Supply
+// worker-safe factories so page.render() works for OCR rasterization.
+class OffscreenCanvasFactory {
+  create(width, height) {
+    if (width <= 0 || height <= 0) {
+      throw new Error('Invalid canvas size');
+    }
+    const canvas = new OffscreenCanvas(width, height);
+    return {
+      canvas,
+      context: canvas.getContext('2d', { willReadFrequently: true })
+    };
+  }
+
+  reset(canvasAndContext, width, height) {
+    if (!canvasAndContext.canvas) {
+      throw new Error('Canvas is not specified');
+    }
+    if (width <= 0 || height <= 0) {
+      throw new Error('Invalid canvas size');
+    }
+    canvasAndContext.canvas.width = width;
+    canvasAndContext.canvas.height = height;
+  }
+
+  destroy(canvasAndContext) {
+    if (!canvasAndContext.canvas) {
+      throw new Error('Canvas is not specified');
+    }
+    canvasAndContext.canvas.width = 0;
+    canvasAndContext.canvas.height = 0;
+    canvasAndContext.canvas = null;
+    canvasAndContext.context = null;
+  }
+}
+
+class NoOpFilterFactory {
+  addFilter() {
+    return 'none';
+  }
+
+  addHCMFilter() {
+    return 'none';
+  }
+
+  addAlphaFilter() {
+    return 'none';
+  }
+
+  addLuminosityFilter() {
+    return 'none';
+  }
+
+  addHighlightHCMFilter() {
+    return 'none';
+  }
+
+  destroy() {}
+}
+
 let activeTaskId = null;
 
 self.addEventListener('message', (event) => {
@@ -66,7 +127,9 @@ async function convertPdf({ buffer, device, file, ocr, taskId }) {
   const loadingTask = pdfjsLib.getDocument({
     data: buffer,
     disableFontFace: true,
-    useSystemFonts: true
+    useSystemFonts: true,
+    CanvasFactory: OffscreenCanvasFactory,
+    FilterFactory: NoOpFilterFactory
   });
 
   let pdf;
