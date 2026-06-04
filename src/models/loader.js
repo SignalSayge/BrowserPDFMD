@@ -90,7 +90,12 @@ export async function loadOcrModels(device, {
       message: `Initializing ${selectedDetector.label} OCR detector.`,
       percent: 25
     });
-    detector = await createSession(ort, detectorBytes, executionProviders);
+    detector = await createSession(
+      ort,
+      detectorBytes,
+      executionProviders,
+      `${selectedDetector.label} detector`
+    );
 
     onProgress?.({
       stage: 'Loading model',
@@ -100,7 +105,8 @@ export async function loadOcrModels(device, {
     recognizer = await createSession(
       ort,
       recognizerBytes,
-      executionProviders
+      executionProviders,
+      'English recognizer'
     );
   } catch (error) {
     await detector?.release?.();
@@ -344,16 +350,24 @@ function getDetectorProfile(detectorProfile) {
   };
 }
 
-async function createSession(ort, url, executionProviders) {
+async function createSession(ort, url, executionProviders, label = 'OCR model') {
+  const requested = executionProviders.map(providerName);
   try {
-    return await ort.InferenceSession.create(url, {
+    const session = await ort.InferenceSession.create(url, {
       executionProviders
     });
+    console.info(`[OCR] ${label}: session created requesting [${requested.join(', ')}].`);
+    return session;
   } catch (error) {
     if (
       executionProviders.length > 1 &&
-      executionProviders.some((provider) => provider !== 'wasm')
+      executionProviders.some((provider) => providerName(provider) !== 'wasm')
     ) {
+      console.warn(
+        `[OCR] ${label}: execution providers [${requested.join(', ')}] failed to ` +
+          'initialize; falling back to WASM (CPU). Reason:',
+        error
+      );
       return ort.InferenceSession.create(url, {
         executionProviders: ['wasm']
       });
@@ -363,7 +377,15 @@ async function createSession(ort, url, executionProviders) {
   }
 }
 
+function providerName(provider) {
+  return typeof provider === 'string' ? provider : provider?.name ?? 'unknown';
+}
+
 function configureOrt(ort) {
+  // Surface ORT's own "N nodes were not assigned to the preferred execution
+  // provider" diagnostics so a silent CPU fallback (e.g. WebNN declining the
+  // graph) is visible in the console.
+  ort.env.logLevel = 'warning';
   const threads = Math.max(1, Math.min(navigator.hardwareConcurrency || 1, 4));
   ort.env.wasm.numThreads = self.crossOriginIsolated ? threads : 1;
 }
