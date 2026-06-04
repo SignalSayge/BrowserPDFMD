@@ -36,7 +36,7 @@ export async function loadOcrModels(device, {
     percent: 21
   });
 
-  const ort = await import('onnxruntime-web/wasm');
+  const ort = await import('onnxruntime-web');
   configureOrt(ort);
 
   const executionProviders = Array.isArray(device?.executionProviders)
