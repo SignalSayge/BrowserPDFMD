@@ -1,0 +1,4 @@
+# The OCR recognition dictionary is integrity-checked by SHA-256 in
+# manifest.json. Pin it to LF so the hash is stable across platforms and
+# git's autocrlf can't rewrite it (which broke the deployed checksum).
+public/models/paddleocr/rec-dict.txt text eol=lf

@@ -231,7 +231,7 @@
     "sourceArchiveSha256": "e595b4cf2ffad19fbb5a61ba345d63939577a3ab8717b6e5995642590c9101b4",
     "license": "Apache-2.0 (PaddleOCR/PaddlePaddle model release)",
     "sha256": "70b2450eed39599af6b996c27a2f1a0ef30eeb49f9f66dd3e74f28f652befc89",
-    "dictionarySha256": "8459e5659185f87d62195cb495f2677493bade134182bfb8c54bf21757b28cdf",
+    "dictionarySha256": "e025a66d31f327ba0c232e03f407ae8d105e1e709e7ccb3f408aa778c24e70d6",
     "sizeBytes": 7843511,
     "dictionaryCharacterCount": 436,
     "onnx": {
