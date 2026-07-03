@@ -9,7 +9,7 @@ export async function classifyDocument(pdf) {
   for (const pageNum of samplePages) {
     try {
       const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent({ normalizeWhitespace: false });
+      const content = await page.getTextContent();
       const chars = content.items.reduce((sum, item) => {
         return sum + (typeof item.str === 'string' ? item.str.trim().length : 0);
       }, 0);

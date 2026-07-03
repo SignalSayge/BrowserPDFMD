@@ -9,8 +9,12 @@ export async function copyOutput(outputArea) {
   }
 
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return;
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      // Permission denied or insecure context; fall through to execCommand.
+    }
   }
 
   outputArea.focus();
@@ -29,5 +33,6 @@ export function downloadOutput(markdown, filename) {
   link.href = url;
   link.download = filename;
   link.click();
-  URL.revokeObjectURL(url);
+  // Revoking synchronously can abort the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

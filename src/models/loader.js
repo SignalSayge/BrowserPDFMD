@@ -403,11 +403,11 @@ function weakerDevice(a, b) {
   return DEVICE_RANK[a] <= DEVICE_RANK[b] ? a : b;
 }
 
-async function createSession(ort, url, plan, label) {
+async function createSession(ort, modelBytes, plan, label) {
   for (let index = 0; index < plan.length; index += 1) {
     const tier = plan[index];
     try {
-      const session = await ort.InferenceSession.create(url, {
+      const session = await ort.InferenceSession.create(modelBytes, {
         executionProviders: tier.providers
       });
       console.info(`[OCR] ${label}: running on ${tier.type}.`);

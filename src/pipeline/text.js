@@ -2,12 +2,18 @@ import { orderLinesByLayout } from './layout.js';
 
 export async function extractTextLines(pdf, { onProgress, warnings }) {
   const allLines = [];
+  const fontFlagsCache = new Map();
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: 1 });
-    const content = await page.getTextContent({ normalizeWhitespace: false });
-    const items = mapTextItems(content.items, viewport, pageNum, warnings);
+    // Font objects only reach commonObjs when the page is parsed for
+    // rendering; getOperatorList does that parse without a canvas so
+    // resolveFontFlags can read real font names (bold/italic detection).
+    await page.getOperatorList();
+    const content = await page.getTextContent();
+    const getFontFlags = (fontName) => resolveFontFlags(page, fontName, fontFlagsCache);
+    const items = mapTextItems(content.items, viewport, pageNum, warnings, getFontFlags);
     allLines.push(...groupItemsIntoLines(items, viewport));
     page.cleanup?.();
     onProgress?.({ current: pageNum, total: pdf.numPages });
@@ -20,7 +26,23 @@ export async function extractTextLines(pdf, { onProgress, warnings }) {
   return orderLinesByLayout(allLines, warnings);
 }
 
-function mapTextItems(items, viewport, pageNum, warnings) {
+function resolveFontFlags(page, fontName, cache) {
+  if (!cache.has(fontName)) {
+    let name = '';
+    try {
+      name = page.commonObjs.get(fontName)?.name || '';
+    } catch {
+      // Font not resolved on this thread; treat as regular weight/style.
+    }
+    cache.set(fontName, {
+      bold: /bold|black|heavy|semibold/i.test(name),
+      italic: /italic|oblique/i.test(name)
+    });
+  }
+  return cache.get(fontName);
+}
+
+function mapTextItems(items, viewport, pageNum, warnings, getFontFlags) {
   const mapped = [];
   let skippedRotated = 0;
 
@@ -41,8 +63,11 @@ function mapTextItems(items, viewport, pageNum, warnings) {
       continue;
     }
 
+    const flags = getFontFlags(item.fontName);
     mapped.push({
       text,
+      bold: flags.bold,
+      italic: flags.italic,
       x: transform[4] || 0,
       y: viewport.height - (transform[5] || 0),
       width: item.width || estimateWidth(text, fontSize),
@@ -87,16 +112,22 @@ function groupItemsIntoLines(items, viewport) {
   }
 
   return lines
-    .map((line) => ({
-      text: buildLineText(line.items),
-      x: line.x,
-      xMax: line.xMax,
-      y: line.y,
-      fontSize: line.fontSize,
-      pageNum: line.pageNum,
-      pageWidth: line.pageWidth,
-      pageHeight: line.pageHeight
-    }))
+    .map((line) => {
+      const { text, mdText } = buildLineTexts(line.items);
+      return {
+        text,
+        mdText,
+        cells: buildCells(line.items),
+        bold: line.items.every((item) => item.bold),
+        x: line.x,
+        xMax: line.xMax,
+        y: line.y,
+        fontSize: line.fontSize,
+        pageNum: line.pageNum,
+        pageWidth: line.pageWidth,
+        pageHeight: line.pageHeight
+      };
+    })
     .filter((line) => line.text);
 }
 
@@ -120,29 +151,85 @@ function findNearestLine(lines, item) {
   return bestLine;
 }
 
-function buildLineText(items) {
+export function buildLineTexts(items) {
+  const runs = buildStyleRuns(items);
+  const collapse = (value) => value.replace(/\s+/g, ' ');
+
+  const text = runs
+    .map((run) => run.sep + collapse(run.text))
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const mdText = runs
+    .map((run) => {
+      const marker = run.bold && run.italic ? '***' : run.bold ? '**' : run.italic ? '*' : '';
+      const body = collapse(run.text).trim();
+      const wrapped = marker && body ? `${marker}${body}${marker}` : body;
+      // Whitespace must sit outside emphasis markers or Markdown ignores them.
+      const leading = /^\s/.test(run.text) ? ' ' : '';
+      const trailing = /\s$/.test(run.text) ? ' ' : '';
+      return run.sep + leading + wrapped + trailing;
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return { text, mdText };
+}
+
+function buildStyleRuns(items) {
   const sorted = [...items].sort((a, b) => a.x - b.x);
-  let output = '';
+  const runs = [];
   let previous = null;
 
   for (const item of sorted) {
-    if (!previous) {
-      output = item.text;
-      previous = item;
-      continue;
+    let sep = '';
+    if (previous) {
+      const gap = item.x - (previous.x + previous.width);
+      const gapThreshold = Math.max(previous.fontSize, item.fontSize) * 0.25;
+      if (gap > gapThreshold && !/\s$/.test(previous.text) && !/^\s/.test(item.text)) {
+        sep = ' ';
+      }
     }
 
-    const previousEnd = previous.x + previous.width;
-    const gap = item.x - previousEnd;
-    const gapThreshold = Math.max(previous.fontSize, item.fontSize) * 0.25;
-    const needsSpace =
-      gap > gapThreshold && !/\s$/.test(output) && !/^\s/.test(item.text);
-
-    output += needsSpace ? ` ${item.text}` : item.text;
+    const run = runs[runs.length - 1];
+    if (run && run.bold === !!item.bold && run.italic === !!item.italic) {
+      run.text += sep + item.text;
+    } else {
+      runs.push({ sep, text: item.text, bold: !!item.bold, italic: !!item.italic });
+    }
     previous = item;
   }
 
-  return output.replace(/\s+/g, ' ').trim();
+  return runs;
+}
+
+function buildCells(items) {
+  const sorted = [...items].sort((a, b) => a.x - b.x);
+  const cells = [];
+  let previous = null;
+
+  for (const item of sorted) {
+    // Generous split threshold: false splits are cheap because table detection
+    // only keeps column boundaries whose whitespace is shared by every row.
+    const gap = previous ? item.x - (previous.x + previous.width) : 0;
+    if (!previous || gap > Math.max(previous.fontSize, item.fontSize) * 1.25) {
+      cells.push({ x: item.x, items: [item] });
+    } else {
+      cells[cells.length - 1].items.push(item);
+    }
+    previous = item;
+  }
+
+  return cells.map((cell) => {
+    const last = cell.items[cell.items.length - 1];
+    return {
+      x: cell.x,
+      xEnd: last.x + last.width,
+      text: buildLineTexts(cell.items).text
+    };
+  });
 }
 
 function estimateWidth(text, fontSize) {

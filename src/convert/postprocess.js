@@ -32,6 +32,10 @@ function keepLine(line) {
     return true;
   }
 
+  if (trimmed.startsWith('|')) {
+    return true;
+  }
+
   if (/^#{1,6}\s+/.test(line)) {
     return trimmed.length > 3;
   }

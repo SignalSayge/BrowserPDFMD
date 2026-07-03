@@ -26,7 +26,7 @@ export async function runOcrPipeline(pdf, {
         current: pageNum,
         total: pdf.numPages,
         message: `Preparing page ${pageNum} for local OCR inference.`,
-        percent: 25 + (pageNum / pdf.numPages) * 60
+        percent: 25 + ((pageNum - 1) / pdf.numPages) * 60
       });
 
       const page = await pdf.getPage(pageNum);
@@ -780,11 +780,4 @@ async function yieldToWorker() {
   await new Promise((resolve) => {
     setTimeout(resolve, 0);
   });
-}
-
-function createWorkerError(code, message, details = null) {
-  const error = new Error(message);
-  error.code = code;
-  error.details = details;
-  return error;
 }

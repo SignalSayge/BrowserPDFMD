@@ -1,7 +1,6 @@
 :root {
   color-scheme: light;
   --bg: #f4f0e8;
-  --bg-grid: rgba(34, 34, 29, 0.08);
   --ink: #20211d;
   --muted: #66695e;
   --panel: #fffdf7;
@@ -11,7 +10,7 @@
   --accent-strong: #074f42;
   --amber: #b56a14;
   --danger: #9f2f24;
-  --shadow: 0 24px 60px rgba(41, 34, 24, 0.12);
+  --shadow: 0 10px 30px rgba(41, 34, 24, 0.08);
   font-family: Aptos, "Segoe UI", Tahoma, sans-serif;
 }
 
@@ -23,11 +22,7 @@ body {
   min-width: 320px;
   margin: 0;
   color: var(--ink);
-  background:
-    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px),
-    linear-gradient(180deg, var(--bg-grid) 1px, transparent 1px),
-    var(--bg);
-  background-size: 32px 32px;
+  background: var(--bg);
 }
 
 button,
@@ -68,15 +63,14 @@ button:disabled {
 .brand-mark {
   display: grid;
   width: 48px;
-  height: 56px;
+  height: 48px;
   place-items: center;
-  border: 2px solid var(--ink);
-  border-radius: 4px;
-  background: var(--panel);
-  box-shadow: 6px 6px 0 var(--accent);
-  font-family: Georgia, "Times New Roman", serif;
+  border-radius: 12px;
+  background: var(--accent);
+  box-shadow: var(--shadow);
+  color: #fffdf7;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .brand h1,
@@ -91,26 +85,47 @@ button:disabled {
 .brand h1,
 .panel-heading h2,
 .output-toolbar h2 {
-  font-family: Georgia, "Times New Roman", serif;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 .brand h1 {
-  font-size: clamp(28px, 4vw, 48px);
-  line-height: 1;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.1;
 }
 
 .brand p {
-  margin-top: 6px;
-  color: var(--muted);
+  margin-top: 4px;
+  color: var(--accent-strong);
   font-size: 14px;
+  font-weight: 600;
 }
 
 .status-actions {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.github-link {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 253, 247, 0.86);
+  color: var(--ink);
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  background: var(--ink);
+  color: #fffdf7;
+  outline: none;
 }
 
 .info-popover {
@@ -147,10 +162,10 @@ button:disabled {
   z-index: 10;
   width: min(320px, calc(100vw - 32px));
   padding: 12px;
-  border: 1px solid var(--ink);
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
   background: var(--panel);
-  box-shadow: 8px 8px 0 rgba(11, 111, 91, 0.18);
+  box-shadow: 0 12px 32px rgba(41, 34, 24, 0.16);
   color: var(--ink);
   font-size: 13px;
   line-height: 1.45;
@@ -205,9 +220,10 @@ button:disabled {
 .input-panel,
 .output-panel {
   min-height: calc(100vh - 136px);
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 253, 247, 0.92);
+  border-radius: 14px;
+  background: var(--panel);
   box-shadow: var(--shadow);
 }
 
@@ -224,7 +240,6 @@ button:disabled {
   flex-direction: column;
 }
 
-.panel-heading,
 .output-toolbar {
   display: flex;
   align-items: center;
@@ -292,10 +307,10 @@ button:disabled {
 .paper-stack span {
   position: absolute;
   inset: 0;
-  border: 2px solid var(--ink);
-  border-radius: 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
   background: var(--panel);
-  box-shadow: 8px 8px 0 rgba(11, 111, 91, 0.18);
+  box-shadow: 0 10px 24px rgba(41, 34, 24, 0.14);
 }
 
 .paper-stack span:nth-child(1) {
@@ -337,8 +352,8 @@ button:disabled {
 }
 
 .dropzone-copy strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 30px;
+  font-size: 22px;
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -347,13 +362,23 @@ button:disabled {
   font-size: 14px;
 }
 
+.privacy-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
 .primary-button,
 .secondary-button,
 .icon-button {
   min-height: 38px;
-  border: 1px solid var(--ink);
-  border-radius: 6px;
-  font-weight: 800;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 700;
   transition:
     background 140ms ease,
     color 140ms ease,
@@ -362,10 +387,14 @@ button:disabled {
 }
 
 .primary-button {
-  padding: 0 18px;
-  background: var(--ink);
+  padding: 0 20px;
+  background: var(--accent);
   color: #fffdf7;
-  box-shadow: 4px 4px 0 var(--accent);
+  box-shadow: 0 6px 16px rgba(11, 111, 91, 0.28);
+}
+
+.primary-button:hover {
+  background: var(--accent-strong);
 }
 
 .primary-button:hover,
@@ -377,14 +406,15 @@ button:disabled {
 .secondary-button,
 .icon-button {
   padding: 0 14px;
+  border-color: var(--line);
   background: var(--panel);
   color: var(--ink);
 }
 
 .secondary-button:hover,
 .icon-button:hover:not(:disabled) {
-  background: var(--ink);
-  color: #fffdf7;
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .file-meta,
@@ -423,8 +453,7 @@ button:disabled {
 }
 
 .ocr-settings strong {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .segmented-control {
@@ -461,8 +490,8 @@ button:disabled {
 }
 
 .segmented-control input:checked + span {
-  border-color: var(--ink);
-  background: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent);
   color: #fffdf7;
 }
 

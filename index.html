@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Convert PDF documents to Markdown locally in the browser."
+      content="Convert PDF documents to Markdown entirely offline in your browser. No uploads, no servers — files never leave your device."
     />
     <title>PDF to Markdown</title>
   </head>
@@ -16,10 +16,21 @@
           <span class="brand-mark" aria-hidden="true">MD</span>
           <div>
             <h1>PDF to Markdown</h1>
-            <p>Local conversion workspace</p>
+            <p>100% offline — files never leave your device</p>
           </div>
         </div>
         <div class="status-actions">
+          <a
+            class="github-link"
+            href="https://github.com/SignalSayge/BrowserPDFMD"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View source on GitHub"
+          >
+            <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+            </svg>
+          </a>
           <div class="info-popover">
             <button
               class="info-button"
@@ -63,6 +74,12 @@
             <button id="chooseFileButton" class="primary-button" type="button">
               Choose PDF
             </button>
+            <p class="privacy-note">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                <path d="M4 6V4a4 4 0 1 1 8 0v2h.5A1.5 1.5 0 0 1 14 7.5v6a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5v-6A1.5 1.5 0 0 1 3.5 6H4Zm1.5-2v2h5V4a2.5 2.5 0 0 0-5 0Z" />
+              </svg>
+              Processed entirely on this device. Nothing is uploaded.
+            </p>
           </div>
 
           <div id="fileMeta" class="file-meta" hidden></div>

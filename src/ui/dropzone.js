@@ -21,12 +21,19 @@ export function createDropzone({ button, dropzone, input, onFile, onInvalidFile 
     });
   }
 
-  for (const eventName of ['dragleave', 'drop']) {
-    dropzone.addEventListener(eventName, (event) => {
-      event.preventDefault();
-      dropzone.classList.remove('is-dragging');
-    });
-  }
+  dropzone.addEventListener('dragleave', (event) => {
+    event.preventDefault();
+    // Leaving into a child element still counts as inside the dropzone.
+    if (event.relatedTarget && dropzone.contains(event.relatedTarget)) {
+      return;
+    }
+    dropzone.classList.remove('is-dragging');
+  });
+
+  dropzone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropzone.classList.remove('is-dragging');
+  });
 
   dropzone.addEventListener('drop', (event) => {
     const [file] = event.dataTransfer?.files || [];
